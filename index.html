@@ -21,17 +21,18 @@
         .search-container { position: relative; }
         .search-container i { position: absolute; left: 15px; top: 10px; color: #4505f3; }
         .logo-main { width: 180px; height: 180px; border-radius: 20px; margin-bottom: 20px; object-fit: cover; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); color: white; display: flex; align-items: center; justify-content: center; z-index: 2000; display: none; }
     </style>
 </head>
 <body>
+
+    <div id="loading">Sincronizando com o Banco de Dados...</div>
 
     <div class="container py-4">
         
         <div id="aba-home" class="text-center py-5">
             <img src="logo.png" alt="Logo Oficina KM" class="logo-main shadow">
-            <h2 class="mb-4 fw-bold text-dark">Oficina Karlos & Mello</h2>
             <p class="text-muted mb-5">Selecione uma opção para começar</p>
-            
             <div class="d-grid gap-3 col-md-6 mx-auto">
                 <button class="btn btn-primary btn-main" onclick="mudarAba('cadastro')">
                     <i class="bi bi-plus-circle me-2"></i> NOVO CADASTRO (OS)
@@ -48,57 +49,21 @@
                     <h3><i class="bi bi-assignment text-primary"></i> Nova OS</h3>
                     <button class="btn btn-outline-secondary btn-sm" onclick="limparTela()"><i class="bi bi-arrow-clockwise"></i> Limpar</button>
                 </div>
-
                 <input type="hidden" id="id_edicao">
-                
                 <div class="row g-3">
-                    <div class="col-md-8">
-                        <label class="form-label small">Cliente</label>
-                        <input type="text" id="txt_cliente" class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small">WhatsApp</label>
-                        <input type="text" id="txt_whatsapp" class="form-control">
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <label class="form-label small">Veículo</label>
-                        <input type="text" id="txt_modelo" class="form-control">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small">Placa/Ano</label>
-                        <input type="text" id="txt_placa" class="form-control">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small">KM</label>
-                        <input type="text" id="txt_km" class="form-control">
-                    </div>
-
-                    <div class="col-12">
-                        <label class="label-red">Queixa/Sintomas</label>
-                        <textarea id="txt_queixa" class="form-control" rows="3" style="border-color: red;"></textarea>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="label-blue">Serviços/Peças</label>
-                        <textarea id="txt_servico" class="form-control" rows="6"></textarea>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label small">Previsão Entrega</label>
-                        <input type="text" id="txt_entrega" placeholder="DD/MM/AAAA" class="form-control">
-                    </div>
+                    <div class="col-md-8"><label class="form-label small">Cliente</label><input type="text" id="txt_cliente" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label small">WhatsApp</label><input type="text" id="txt_whatsapp" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label small">Veículo</label><input type="text" id="txt_modelo" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label small">Placa/Ano</label><input type="text" id="txt_placa" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label small">KM</label><input type="text" id="txt_km" class="form-control"></div>
+                    <div class="col-12"><label class="label-red">Queixa/Sintomas</label><textarea id="txt_queixa" class="form-control" rows="3" style="border-color: red;"></textarea></div>
+                    <div class="col-12"><label class="label-blue">Serviços/Peças</label><textarea id="txt_servico" class="form-control" rows="6"></textarea></div>
+                    <div class="col-md-4"><label class="form-label small">Previsão Entrega</label><input type="text" id="txt_entrega" placeholder="DD/MM/AAAA" class="form-control"></div>
                     <div class="col-md-4">
                         <label class="form-label small">Valor Total</label>
-                        <div class="input-group">
-                            <span class="input-group-text">R$</span>
-                            <input type="text" id="txt_valor" class="form-control fw-bold text-success">
-                        </div>
+                        <div class="input-group"><span class="input-group-text">R$</span><input type="text" id="txt_valor" class="form-control fw-bold text-success"></div>
                     </div>
-                    <div class="col-md-4 d-grid">
-                        <label class="form-label opacity-0">Ação</label>
-                        <button onclick="salvarOS()" class="btn btn-save btn-lg shadow-sm"><i class="bi bi-save"></i> SALVAR OS</button>
-                    </div>
+                    <div class="col-md-4 d-grid"><label class="form-label opacity-0">Ação</label><button onclick="salvarOS()" class="btn btn-save btn-lg shadow-sm"><i class="bi bi-save"></i> SALVAR OS</button></div>
                 </div>
             </div>
         </div>
@@ -106,14 +71,10 @@
         <div id="aba-historico" class="hidden">
             <div class="card card-custom p-4">
                 <h3 class="mb-4">Histórico e Pesquisa</h3>
-                
                 <div class="search-container mb-4">
                     <i class="bi bi-search"></i>
-                    <input type="text" id="input_pesquisa" class="form-control search-box" 
-                           placeholder="Pesquisar por Nome do Cliente ou Placa..." 
-                           onkeyup="atualizarTabela()">
+                    <input type="text" id="input_pesquisa" class="form-control search-box" placeholder="Pesquisar por Nome do Cliente ou Placa..." onkeyup="atualizarTabela()">
                 </div>
-
                 <hr>
                 <div id="lista_historico"></div>
             </div>
@@ -121,63 +82,38 @@
     </div>
 
     <nav class="nav-bottom d-flex justify-content-around py-2">
-        <div class="text-center" onclick="mudarAba('home')" id="nav-home" style="cursor:pointer; color: blue;">
-            <i class="bi bi-house-door-fill fs-4"></i><br><small>Início</small>
-        </div>
-        <div class="text-center" onclick="mudarAba('cadastro')" id="nav-cad" style="cursor:pointer; color: #888;">
-            <i class="bi bi-plus-circle fs-4"></i><br><small>Cadastro</small>
-        </div>
-        <div class="text-center" onclick="mudarAba('historico')" id="nav-hist" style="cursor:pointer; color: #888;">
-            <i class="bi bi-search fs-4"></i><br><small>Pesquisa</small>
-        </div>
+        <div class="text-center" onclick="mudarAba('home')" id="nav-home" style="cursor:pointer; color: blue;"><i class="bi bi-house-door-fill fs-4"></i><br><small>Início</small></div>
+        <div class="text-center" onclick="mudarAba('cadastro')" id="nav-cad" style="cursor:pointer; color: #888;"><i class="bi bi-plus-circle fs-4"></i><br><small>Cadastro</small></div>
+        <div class="text-center" onclick="mudarAba('historico')" id="nav-hist" style="cursor:pointer; color: #888;"><i class="bi bi-search fs-4"></i><br><small>Pesquisa</small></div>
     </nav>
 
     <script>
+        // --- COLE SUA URL DO GOOGLE APPS SCRIPT AQUI ABAIXO ---
+        const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbxihAx5EVMFb8stWt9YmU_caljkU66EUKa37HrAtceWuEUAN_-YQvI2xnBDpyJ-Hh8MWA/exec';
+
         const { jsPDF } = window.jspdf;
+        let dadosLocais = [];
 
-        function getDados() { return JSON.parse(localStorage.getItem('oficina_db')) || []; }
-        function salvarDados(dados) { localStorage.setItem('oficina_db', JSON.stringify(dados)); }
-
-        function gerarPDF(id) {
-            const dados = getDados();
-            const r = dados.find(x => x.id == id);
-            const doc = new jsPDF();
-            
-            doc.setFontSize(18); doc.text("OFICINA KARLOS & MELLO", 50, 20);
-            doc.setFontSize(10); doc.text("Mecanica Suspensao - Freio - Motor.", 50, 25);
-            doc.line(10, 40, 200, 40);
-            doc.setFontSize(12); doc.text(`ORDEM DE SERVICO Nº ${r.id}`, 105, 50, {align: "center"});
-            doc.setFontSize(10);
-            doc.text(`Cliente: ${r.cliente}`, 10, 60); doc.text(`Fone: ${r.whatsapp}`, 140, 60);
-            doc.text(`Veiculo: ${r.modelo}`, 10, 70); doc.text(`Placa: ${r.placa}`, 110, 70); doc.text(`KM: ${r.km}`, 160, 70);
-            doc.text(`Data Entrada: ${r.data_entrada}`, 10, 80); doc.text(`Entrega: ${r.data_entrega || "___/___/___"}`, 110, 80);
-            doc.setFillColor(255, 240, 240); doc.rect(10, 90, 190, 7, 'F');
-            doc.text(" QUEIXA DO CLIENTE / SINTOMAS RELATADOS:", 12, 95);
-            doc.setFontSize(9); doc.text(r.queixa || "", 12, 105, { maxWidth: 180 });
-            doc.setFontSize(10); doc.setFillColor(240, 240, 240); doc.rect(10, 135, 150, 7, 'F'); doc.rect(160, 135, 40, 7, 'F');
-            doc.text(" DESCRICAO DOS SERVICOS E PECAS", 12, 140); doc.text(" PRECO (R$)", 165, 140);
-            doc.setFontSize(9); doc.text(r.servico || "", 12, 150, { maxWidth: 145 });
-            doc.text(parseFloat(r.valor || 0).toFixed(2), 170, 150);
-            doc.setFontSize(8);
-            const termo = "Conforme o Artigo 26, inciso II do Codigo de Defesa do Consumidor (Lei 8.078/90), este servico possui garantia legal de 90 (noventa) dias...";
-            doc.text(termo, 10, 240, { maxWidth: 190, align: "justify" });
-            doc.line(15, 270, 95, 270); doc.line(115, 270, 195, 270);
-            doc.text("Proprietario", 45, 275); doc.text("Responsavel: Karlos Tenorio", 145, 275);
-            doc.save(`OS_${r.id}.pdf`);
+        async function carregarDadosDoSheets() {
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                const response = await fetch(URL_SCRIPT);
+                const data = await response.json();
+                dadosLocais = data;
+                localStorage.setItem('oficina_db', JSON.stringify(dadosLocais));
+                atualizarTabela();
+            } catch (e) {
+                console.error("Erro ao carregar dados", e);
+                dadosLocais = JSON.parse(localStorage.getItem('oficina_db')) || [];
+                atualizarTabela();
+            }
+            document.getElementById('loading').style.display = 'none';
         }
 
-        function limparTela() {
-            document.getElementById('id_edicao').value = "";
-            ['txt_cliente', 'txt_whatsapp', 'txt_modelo', 'txt_placa', 'txt_km', 'txt_queixa', 'txt_servico', 'txt_entrega', 'txt_valor'].forEach(id => {
-                document.getElementById(id).value = "";
-            });
-        }
-
-        function salvarOS() {
-            const dados = getDados();
+        async function salvarOS() {
             const id_edicao = document.getElementById('id_edicao').value;
-            
             const novaOS = {
+                metodo: id_edicao ? "editar" : "salvar",
                 id: id_edicao || Math.floor(Math.random() * 10000), 
                 cliente: document.getElementById('txt_cliente').value,
                 whatsapp: document.getElementById('txt_whatsapp').value,
@@ -187,47 +123,64 @@
                 queixa: document.getElementById('txt_queixa').value,
                 servico: document.getElementById('txt_servico').value,
                 valor: document.getElementById('txt_valor').value.replace(',', '.'),
-                data_entrada: id_edicao ? dados.find(x => x.id == id_edicao).data_entrada : new Date().toLocaleDateString('pt-BR'),
+                // Procure este trecho dentro da função salvarOS():
+                data_entrada: id_edicao ? dadosLocais.find(x => x.id == id_edicao).data_entrada : new Date().toLocaleDateString('pt-BR'),
                 data_entrega: document.getElementById('txt_entrega').value
             };
 
-            if (id_edicao) {
-                const index = dados.findIndex(x => x.id == id_edicao);
-                dados[index] = novaOS;
-            } else {
-                dados.push(novaOS);
+            document.getElementById('loading').style.display = 'flex';
+            try {
+                await fetch(URL_SCRIPT, {
+                    method: 'POST',
+                    mode: 'no-cors', // Importante para evitar erros de CORS no POST simples
+                    body: JSON.stringify(novaOS)
+                });
+                
+                // Aguarda um pequeno delay para o Google processar e recarrega
+                setTimeout(carregarDadosDoSheets, 1500);
+                limparTela();
+                mudarAba('historico');
+            } catch (e) {
+                alert("Erro ao enviar dados. Verifique a URL do Script.");
             }
-
-            salvarDados(dados);
-            limparTela();
-            mudarAba('historico');
+            document.getElementById('loading').style.display = 'none';
         }
 
         function atualizarTabela() {
             const lista = document.getElementById('lista_historico');
             const termoBusca = document.getElementById('input_pesquisa').value.toLowerCase();
-            let dados = getDados().reverse();
+            
+            let dadosFiltrados = [...dadosLocais].reverse();
 
             if (termoBusca) {
-                dados = dados.filter(d => 
-                    d.cliente.toLowerCase().includes(termoBusca) || 
-                    d.placa.toLowerCase().includes(termoBusca)
-                );
+                dadosFiltrados = dadosFiltrados.filter(d => {
+                    const nome = (d.cliente || "").toString().toLowerCase();
+                    const placa = (d.placa || "").toString().toLowerCase();
+                    return nome.includes(termoBusca) || placa.includes(termoBusca);
+                });
             }
 
             lista.innerHTML = "";
-            if (dados.length === 0) {
-                lista.innerHTML = "<p class='text-center text-muted py-5'>Nenhuma ordem de serviço encontrada.</p>";
+            if (dadosFiltrados.length === 0) {
+                lista.innerHTML = `<p class='text-center text-muted py-5'>Nenhum registro encontrado.</p>`;
+                return;
             }
 
-            dados.forEach(d => {
+            dadosFiltrados.forEach(d => {
+                // --- NOVIDADE AQUI: LIMPEZA DA DATA ---
+                let dataFormatada = d.data_entrada;
+                if (dataFormatada && dataFormatada.includes('T')) {
+                    dataFormatada = dataFormatada.split('T')[0].split('-').reverse().join('/');
+                }
+                // ---------------------------------------
+
                 lista.innerHTML += `
                     <div class="card mb-3 p-3 shadow-sm border-start border-primary border-4">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h6 class="mb-1 fw-bold">${d.cliente}</h6>
+                                <h6 class="mb-1 fw-bold text-dark">${d.cliente}</h6>
                                 <p class="mb-0 small text-muted"><i class="bi bi-car-front"></i> ${d.modelo} | <strong>Placa: ${d.placa}</strong></p>
-                                <p class="mb-0 small text-muted">OS: ${d.id} | Entrada: ${d.data_entrada}</p>
+                                <p class="mb-0 small text-muted">OS: ${d.id} | Entrada: ${dataFormatada}</p>
                             </div>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-outline-warning" onclick="editarOS(${d.id})"><i class="bi bi-pencil"></i></button>
@@ -237,11 +190,75 @@
                     </div>
                 `;
             });
+}
+
+        function gerarPDF(id) {
+    const r = dadosLocais.find(x => x.id == id);
+    if(!r) return;
+
+    const doc = new jsPDF();
+    
+    // --- INÍCIO DA INSERÇÃO DA LOGO ---
+    const imgLogo = document.querySelector(".logo-main"); // Pega a logo da tela inicial
+    if (imgLogo) {
+        try {
+            // Desenha a imagem no PDF (X, Y, Largura, Altura)
+            doc.addImage(imgLogo, 'PNG', 10, 10, 30, 30); 
+        } catch (e) {
+            console.error("Erro ao carregar a logo no PDF", e);
+        }
+    }
+    // --- FIM DA INSERÇÃO DA LOGO ---
+
+    // Ajustei as coordenadas do texto abaixo para não sobrepor a logo
+    doc.setFontSize(18); doc.text("AUTOCAR KARLOS & MELLO", 45, 20);
+    doc.setFontSize(10); doc.text("Mecanica Suspensao - Freio - Motor.", 45, 25);
+    doc.line(10, 42, 200, 42);
+
+    doc.setFontSize(12); doc.text(`ORDEM DE SERVIÇO Nº ${r.id}`, 105, 52, {align: "center"});
+    
+    doc.setFontSize(10);
+    doc.text(`Cliente: ${r.cliente}`, 10, 62); doc.text(`Fone: ${r.whatsapp}`, 140, 62);
+    doc.text(`Veículo: ${r.modelo}`, 10, 72); doc.text(`Placa: ${r.placa}`, 110, 72); doc.text(`KM: ${r.km}`, 160, 72);
+    
+    // Limpeza da data ISO caso ela apareça no PDF
+    let dataEntrada = r.data_entrada;
+    if (dataEntrada && dataEntrada.includes('T')) {
+        dataEntrada = dataEntrada.split('T')[0].split('-').reverse().join('/');
+    }
+    
+    doc.text(`Data Entrada: ${dataEntrada}`, 10, 82); 
+    doc.text(`Entrega: ${r.data_entrega || "___/___/___"}`, 110, 82);
+
+    doc.setFillColor(255, 240, 240); doc.rect(10, 90, 190, 7, 'F');
+    doc.text(" QUEIXA DO CLIENTE / SINTOMAS RELATADOS:", 12, 95);
+    doc.setFontSize(9); doc.text(r.queixa || "", 12, 105, { maxWidth: 180 });
+
+    doc.setFontSize(10); doc.setFillColor(240, 240, 240); doc.rect(10, 135, 150, 7, 'F'); doc.rect(160, 135, 40, 7, 'F');
+    doc.text(" DESCRIÇÃO DOS SERVIÇOS E PEÇAS", 12, 140); doc.text(" PREÇO (R$)", 165, 140);
+    doc.setFontSize(9); doc.text(r.servico || "", 12, 150, { maxWidth: 145 });
+    doc.text(parseFloat(r.valor || 0).toFixed(2), 170, 150);
+
+    doc.setFontSize(8);
+    const termo = "Conforme o Artigo 26, inciso II do Codigo de Defesa do Consumidor (Lei 8.078/90), este servico possui garantia legal de 90 (noventa) dias...";
+    doc.text(termo, 10, 240, { maxWidth: 190, align: "justify" });
+
+    doc.line(15, 270, 95, 270); doc.line(115, 270, 195, 270);
+    doc.text("Proprietário", 45, 275); 
+    doc.text("Responsável: Karlos Tenório", 145, 275); // Nome corrigido conforme sua instrução
+
+    doc.save(`OS_${r.id}.pdf`);
+}
+        function limparTela() {
+            document.getElementById('id_edicao').value = "";
+            ['txt_cliente', 'txt_whatsapp', 'txt_modelo', 'txt_placa', 'txt_km', 'txt_queixa', 'txt_servico', 'txt_entrega', 'txt_valor'].forEach(id => {
+                document.getElementById(id).value = "";
+            });
         }
 
         function editarOS(id) {
-            const dados = getDados();
-            const r = dados.find(x => x.id == id);
+            const r = dadosLocais.find(x => x.id == id);
+            if(!r) return;
             document.getElementById('id_edicao').value = r.id;
             document.getElementById('txt_cliente').value = r.cliente;
             document.getElementById('txt_whatsapp').value = r.whatsapp;
@@ -264,8 +281,11 @@
             Object.values(navs).forEach(n => document.getElementById(n).style.color = '#888');
             document.getElementById(navs[aba]).style.color = 'blue';
 
-            if (aba === 'historico') atualizarTabela();
+            if (aba === 'historico') carregarDadosDoSheets();
         }
+
+        // Carrega ao abrir o site
+        window.onload = carregarDadosDoSheets;
     </script>
 </body>
 </html>
