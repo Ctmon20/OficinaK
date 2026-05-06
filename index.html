@@ -206,8 +206,8 @@
                             </div>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-outline-warning" title="Editar" onclick="editarOS(${d.id})"><i class="bi bi-pencil"></i></button>
-                                <button class="btn btn-sm btn-info text-white" title="Imprimir Térmica" onclick="imprimirTermica(${d.id})"><i class="bi bi-printer"></i></button>
-                                <button class="btn btn-sm btn-outline-danger" title="PDF" onclick="gerarPDF(${d.id})"><i class="bi bi-file-pdf"></i></button>
+                                <button class="btn btn-sm btn-dark" title="Imprimir Knup" onclick="gerarPDFTermico(${d.id})"><i class="bi bi-printer"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" title="PDF Normal" onclick="gerarPDF(${d.id})"><i class="bi bi-file-pdf"></i></button>
                                 <button class="btn btn-sm btn-danger" title="Excluir" onclick="excluirOS(${d.id})"><i class="bi bi-trash"></i></button>
                             </div>
                         </div>
@@ -216,39 +216,99 @@
             });
         }
 
-        // --- NOVA FUNÇÃO PARA IMPRESSORA TÉRMICA KNUP ---
-        function imprimirTermica(id) {
+        // --- AJUSTE DEFINITIVO PARA IMPRESSORA TÉRMICA 58MM ---
+        function gerarPDFTermico(id) {
             const r = dadosLocais.find(x => x.id == id);
             if(!r) return;
+
+            const doc = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: [58, 280] // Aumentado para caber garantias e assinaturas
+            });
+
+            const margemEsq = 7; // Margem de segurança para a Knup não cortar à esquerda
+            const larguraUtil = 44; // 58 - 7 (margem esq) - 7 (margem dir)
+            const centro = margemEsq + (larguraUtil / 2);
+            const imgLogo = document.querySelector(".logo-main"); 
+            let curY = 10;
+
+            // LOGO CENTRALIZADA NO EIXO DE IMPRESSÃO
+            if (imgLogo) {
+                try {
+                    const tamLogo = 20; 
+                    doc.addImage(imgLogo, 'PNG', centro - (tamLogo/2), curY, tamLogo, tamLogo); 
+                    curY += tamLogo + 5; 
+                } catch (e) { console.error(e); }
+            }
 
             let dataE = r.data_entrada;
             if (dataE && dataE.includes('T')) dataE = dataE.split('T')[0].split('-').reverse().join('/');
 
-            // Formatação legítima para 58mm (Knup im607)
-            const texto = 
-                "--------------------------------\n" +
-                "   AUTOCAR KARLOS & MELLO       \n" +
-                "--------------------------------\n" +
-                "OS NUMERO: " + r.id + "\n" +
-                "DATA: " + dataE + "\n" +
-                "CLIENTE: " + r.cliente + "\n" +
-                "FONE: " + r.whatsapp + "\n" +
-                "VEICULO: " + r.modelo + "\n" +
-                "PLACA: " + r.placa + " KM: " + r.km + "\n" +
-                "--------------------------------\n" +
-                "QUEIXA/SINTOMAS:\n" +
-                (r.queixa || "Nao informado") + "\n\n" +
-                "SERVICOS E PECAS:\n" +
-                (r.servico || "Nao informado") + "\n" +
-                "--------------------------------\n" +
-                "TOTAL: R$ " + parseFloat(r.valor || 0).toFixed(2) + "\n" +
-                "--------------------------------\n\n" +
-                "Ass:____________________________\n" +
-                "       Obrigado pela preferencia!\n\n\n\n";
+            doc.setFontSize(10);
+            doc.text("AUTOCAR KARLOS & MELLO", centro, curY, { align: "center" });
+            doc.setFontSize(7);
+            doc.text("Mecanica Suspensao-Freio-Motor", centro, curY + 4, { align: "center" });
+            doc.text("------------------------------------------", centro, curY + 8, { align: "center" });
 
-            // Comando que envia para apps de impressão no Android
-            const link = "rawbt:base64," + btoa(unescape(encodeURIComponent(texto)));
-            window.location.href = link;
+            curY += 14;
+            doc.setFontSize(8);
+            doc.text(`OS NUMERO: ${r.id}`, margemEsq, curY);
+            doc.text(`DATA: ${dataE}`, margemEsq, curY + 4);
+            
+            curY += 8;
+            const clienteWrap = doc.splitTextToSize(`CLIENTE: ${r.cliente}`, larguraUtil);
+            doc.text(clienteWrap, margemEsq, curY);
+            curY += (clienteWrap.length * 4);
+
+            doc.text(`FONE: ${r.whatsapp}`, margemEsq, curY);
+            curY += 4;
+            doc.text(`VEICULO: ${r.modelo}`, margemEsq, curY);
+            curY += 4;
+            doc.text(`PLACA: ${r.placa}`, margemEsq, curY);
+            doc.text(`KM: ${r.km}`, margemEsq + 25, curY);
+
+            curY += 8;
+            doc.text("-".repeat(40), centro, curY, { align: "center" });
+            curY += 5;
+            doc.text("QUEIXA/SINTOMAS:", margemEsq, curY);
+            
+            doc.setFontSize(7);
+            const queixaSplit = doc.splitTextToSize(r.queixa || "", larguraUtil);
+            doc.text(queixaSplit, margemEsq, curY + 4);
+
+            curY += (queixaSplit.length * 3.5) + 6;
+            doc.setFontSize(8);
+            doc.text("SERVICOS E PECAS:", margemEsq, curY);
+            
+            doc.setFontSize(7);
+            const servicoSplit = doc.splitTextToSize(r.servico || "", larguraUtil);
+            doc.text(servicoSplit, margemEsq, curY + 4);
+
+            curY += (servicoSplit.length * 3.5) + 6;
+            doc.setFontSize(10);
+            doc.text(`TOTAL: R$ ${parseFloat(r.valor || 0).toFixed(2)}`, margemEsq, curY);
+
+            // TERMOS DE GARANTIA (ADAPTADO DO PDF ORIGINAL)
+            curY += 10;
+            doc.setFontSize(6);
+            const termo = "Garantia legal de 90 dias (Lei 8.078/90). Nao cobre mau uso ou pecas nao substituidas.";
+            const termoWrap = doc.splitTextToSize(termo, larguraUtil);
+            doc.text(termoWrap, margemEsq, curY);
+
+            // ASSINATURAS
+            curY += (termoWrap.length * 3) + 12;
+            doc.line(margemEsq, curY, margemEsq + larguraUtil, curY);
+            doc.text("ASSINATURA CLIENTE", centro, curY + 3, { align: "center" });
+
+            curY += 12;
+            doc.line(margemEsq, curY, margemEsq + larguraUtil, curY);
+            doc.text("RESPONSAVEL: KARLOS TENORIO", centro, curY + 3, { align: "center" });
+
+            curY += 10;
+            doc.text("Obrigado pela preferencia!", centro, curY, { align: "center" });
+
+            doc.save(`TERMICO_OS_${r.id}.pdf`);
         }
 
         function gerarPDF(id) {
