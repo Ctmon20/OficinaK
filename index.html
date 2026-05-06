@@ -99,7 +99,6 @@
     </nav>
 
     <script>
-        // --- COLE SUA URL DO GOOGLE APPS SCRIPT AQUI ABAIXO ---
         const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbwrcltULXJy9XlU6SJ8aDJaqUO_e-ezCEm_meCQiZlJRSMJZ6qJYwneMr4oKOaEezdvPg/exec';
 
         const { jsPDF } = window.jspdf;
@@ -157,9 +156,7 @@
 
         async function excluirOS(id) {
             if (!confirm("Tem certeza que deseja excluir este registro permanentemente?")) return;
-
             const dadosExclusao = { metodo: "excluir", id: id };
-
             document.getElementById('loading').style.display = 'flex';
             try {
                 await fetch(URL_SCRIPT, {
@@ -167,7 +164,6 @@
                     mode: 'no-cors',
                     body: JSON.stringify(dadosExclusao)
                 });
-                
                 setTimeout(carregarDadosDoSheets, 1500);
             } catch (e) {
                 alert("Erro ao excluir registro.");
@@ -178,7 +174,6 @@
         function atualizarTabela() {
             const lista = document.getElementById('lista_historico');
             const termoBusca = document.getElementById('input_pesquisa').value.toLowerCase();
-            
             let dadosFiltrados = [...dadosLocais].reverse();
 
             if (termoBusca) {
@@ -211,6 +206,7 @@
                             </div>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-sm btn-outline-warning" title="Editar" onclick="editarOS(${d.id})"><i class="bi bi-pencil"></i></button>
+                                <button class="btn btn-sm btn-info text-white" title="Imprimir Térmica" onclick="imprimirTermica(${d.id})"><i class="bi bi-printer"></i></button>
                                 <button class="btn btn-sm btn-outline-danger" title="PDF" onclick="gerarPDF(${d.id})"><i class="bi bi-file-pdf"></i></button>
                                 <button class="btn btn-sm btn-danger" title="Excluir" onclick="excluirOS(${d.id})"><i class="bi bi-trash"></i></button>
                             </div>
@@ -220,55 +216,73 @@
             });
         }
 
-        function gerarPDF(id) {
+        // --- NOVA FUNÇÃO PARA IMPRESSORA TÉRMICA KNUP ---
+        function imprimirTermica(id) {
             const r = dadosLocais.find(x => x.id == id);
             if(!r) return;
 
+            let dataE = r.data_entrada;
+            if (dataE && dataE.includes('T')) dataE = dataE.split('T')[0].split('-').reverse().join('/');
+
+            // Formatação legítima para 58mm (Knup im607)
+            const texto = 
+                "--------------------------------\n" +
+                "   AUTOCAR KARLOS & MELLO       \n" +
+                "--------------------------------\n" +
+                "OS NUMERO: " + r.id + "\n" +
+                "DATA: " + dataE + "\n" +
+                "CLIENTE: " + r.cliente + "\n" +
+                "FONE: " + r.whatsapp + "\n" +
+                "VEICULO: " + r.modelo + "\n" +
+                "PLACA: " + r.placa + " KM: " + r.km + "\n" +
+                "--------------------------------\n" +
+                "QUEIXA/SINTOMAS:\n" +
+                (r.queixa || "Nao informado") + "\n\n" +
+                "SERVICOS E PECAS:\n" +
+                (r.servico || "Nao informado") + "\n" +
+                "--------------------------------\n" +
+                "TOTAL: R$ " + parseFloat(r.valor || 0).toFixed(2) + "\n" +
+                "--------------------------------\n\n" +
+                "Ass:____________________________\n" +
+                "       Obrigado pela preferencia!\n\n\n\n";
+
+            // Comando que envia para apps de impressão no Android
+            const link = "rawbt:base64," + btoa(unescape(encodeURIComponent(texto)));
+            window.location.href = link;
+        }
+
+        function gerarPDF(id) {
+            const r = dadosLocais.find(x => x.id == id);
+            if(!r) return;
             const doc = new jsPDF();
             const imgLogo = document.querySelector(".logo-main"); 
             if (imgLogo) {
-                try {
-                    doc.addImage(imgLogo, 'PNG', 10, 10, 30, 30); 
-                } catch (e) {
-                    console.error("Erro ao carregar a logo no PDF", e);
-                }
+                try { doc.addImage(imgLogo, 'PNG', 10, 10, 30, 30); } catch (e) { console.error(e); }
             }
-
             doc.setFontSize(18); doc.text("AUTOCAR KARLOS & MELLO", 45, 20);
             doc.setFontSize(10); doc.text("Mecanica Suspensao - Freio - Motor.", 45, 25);
             doc.line(10, 42, 200, 42);
-
             doc.setFontSize(12); doc.text(`ORDEM DE SERVIÇO Nº ${r.id}`, 105, 52, {align: "center"});
-            
             doc.setFontSize(10);
             doc.text(`Cliente: ${r.cliente}`, 10, 62); doc.text(`Fone: ${r.whatsapp}`, 140, 62);
             doc.text(`Veículo: ${r.modelo}`, 10, 72); doc.text(`Placa: ${r.placa}`, 110, 72); doc.text(`KM: ${r.km}`, 160, 72);
-            
             let dataEntrada = r.data_entrada;
-            if (dataEntrada && dataEntrada.includes('T')) {
-                dataEntrada = dataEntrada.split('T')[0].split('-').reverse().join('/');
-            }
-            
+            if (dataEntrada && dataEntrada.includes('T')) dataEntrada = dataEntrada.split('T')[0].split('-').reverse().join('/');
             doc.text(`Data Entrada: ${dataEntrada}`, 10, 82); 
             doc.text(`Entrega: ${r.data_entrega || "___/___/___"}`, 110, 82);
-
             doc.setFillColor(255, 240, 240); doc.rect(10, 90, 190, 7, 'F');
             doc.text(" QUEIXA DO CLIENTE / SINTOMAS RELATADOS:", 12, 95);
             doc.setFontSize(9); doc.text(r.queixa || "", 12, 105, { maxWidth: 180 });
-
             doc.setFontSize(10); doc.setFillColor(240, 240, 240); doc.rect(10, 135, 150, 7, 'F'); doc.rect(160, 135, 40, 7, 'F');
             doc.text(" DESCRIÇÃO DOS SERVIÇOS E PEÇAS", 12, 140); doc.text(" PREÇO (R$)", 165, 140);
             doc.setFontSize(9); doc.text(r.servico || "", 12, 150, { maxWidth: 145 });
             doc.text(parseFloat(r.valor || 0).toFixed(2), 170, 150);
-
             doc.setFontSize(8);
             const termo = "Conforme o Artigo 26, inciso II do Codigo de Defesa do Consumidor (Lei 8.078/90), este servico possui garantia legal de 90 (noventa) dias...";
             doc.text(termo, 10, 240, { maxWidth: 190, align: "justify" });
-
             doc.line(15, 270, 95, 270); doc.line(115, 270, 195, 270);
             doc.text("Proprietário", 45, 275); 
             doc.text("Responsável: Karlos Tenório", 145, 275);
-
             doc.save(`OS_${r.id}.pdf`);
         }
 
@@ -299,11 +313,9 @@
             const abas = ['home', 'cadastro', 'historico'];
             abas.forEach(a => document.getElementById(`aba-${a}`).classList.add('hidden'));
             document.getElementById(`aba-${aba}`).classList.remove('hidden');
-
             const navs = { home: 'nav-home', cadastro: 'nav-cad', historico: 'nav-hist' };
             Object.values(navs).forEach(n => document.getElementById(n).style.color = '#888');
             document.getElementById(navs[aba]).style.color = 'blue';
-
             if (aba === 'historico') carregarDadosDoSheets();
         }
 
